@@ -21,14 +21,14 @@ combo_valid = function() {
     return true;
 },
 show_badge_text = function(color, text, timeout) {
-    chrome.browserAction.setBadgeBackgroundColor({
+    chrome.action.setBadgeBackgroundColor({
         'color': color
     });
-    chrome.browserAction.setBadgeText({
+    chrome.action.setBadgeText({
         'text': text
     });
     setTimeout(function() {
-        chrome.browserAction.setBadgeText({
+        chrome.action.setBadgeText({
             'text': ''
         });
     }, timeout * 1000);
@@ -130,8 +130,8 @@ setup_context_menus = function() {
     }
 };
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.tabs.sendRequest(tab.id, {
+chrome.action.onClicked.addListener(function(tab) {
+    chrome.runtime.sendMessage(tab.id, {
         method: 'selection'
     }, function(text) {
         push_message('badge', tab, text);
