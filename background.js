@@ -1,7 +1,4 @@
-var open_options = function(msg) {
-    if(msg) {
-        localStorage._options_msg = msg;
-    }
+var open_options = function() {
     if (chrome.runtime.openOptionsPage) {
         return chrome.runtime.openOptionsPage();
     }
@@ -9,58 +6,35 @@ var open_options = function(msg) {
         url: chrome.runtime.getURL('options.html')
     });
 },
-combo_valid = function() {
-    var valid = localStorage.valid || '',
-        token = localStorage.token || '',
-        userkey = localStorage.userkey || '';
+
+combo_valid = async function() {
+    const {valid, token, userkey} = await chrome.storage.local.get(['valid', 'token', 'userkey']);
 
     if (!valid || valid !== token + userkey) {
-        open_options('Please check your configuration!');
+        open_options();
         return false;
     }
     return true;
 },
-show_badge_text = function(color, text, timeout) {
-    chrome.browserAction.setBadgeBackgroundColor({
+
+show_badge_text = function(color, text, timeout){
+    chrome.action.setBadgeBackgroundColor({
         'color': color
     });
-    chrome.browserAction.setBadgeText({
+    chrome.action.setBadgeText({
         'text': text
     });
     setTimeout(function() {
-        chrome.browserAction.setBadgeText({
+        chrome.action.setBadgeText({
             'text': ''
         });
     }, timeout * 1000);
 },
-push_message = function(source, tab, selection, device) {
+
+push_message = async function(source, tab, selection, device) {
     if (!combo_valid()) {
         return false;
     }
-
-    // var params = 'token=' + encodeURIComponent(localStorage.token) +
-    //              '&user=' + encodeURIComponent(localStorage.userkey) +
-    //              '&title=' + encodeURIComponent(tab.title) +
-    //              '&url=' + encodeURIComponent(tab.url.substring(0, 500)) +
-    //              '&url_title=' + encodeURIComponent('Open the link');
-
-    // if (source === 'badge' && localStorage.devices_badge) {
-    //     device = localStorage.devices_badge;
-    // }
-
-    // if (device) {
-    //     params += '&device=' + encodeURIComponent(device);
-    // }
-
-    // if (selection) {
-    //     params += '&message=' + encodeURIComponent(selection.substring(0, 512));
-    // } else {
-    //     params += '&message=' + encodeURIComponent(tab.url.substring(0, 500));
-    // }
-
-    // if (localStorage.sound) {
-    //     params += '&sound=' + encodeURIComponent(localStorage.sound);
-    // }
 
     if (selection) {
         var text = encodeURIComponent(selection.substring(0, 512));
@@ -68,52 +42,35 @@ push_message = function(source, tab, selection, device) {
         var text = encodeURIComponent(tab.url.substring(0, 500));
     }
 
-    var req = new XMLHttpRequest();
-    var url = 'https://api.telegram.org/bot' + 
-                     localStorage.token + 
-                    '/sendMessage';
-    url += '?chat_id=' + encodeURIComponent(localStorage.userkey);
+    const {userkey, token} = await chrome.storage.local.get(['userkey', 'token']);
+    var url = 'https://api.telegram.org/bot' + token + '/sendMessage';
+    url += '?chat_id=' + encodeURIComponent(userkey);
     url += '&text=' + text;
     url += encodeURIComponent('\n\nFrom: \n' + tab.title + '\n' + tab.url)
-    req.open('GET', url, true);
-    req.setRequestHeader("Content-Type", "application/json");
-    req.send();
 
-    req.onreadystatechange = function() {
-        if (req.readyState === 4) {
-            if (req.status === 200) {
-                show_badge_text('#006400', 'OK', 2);
-            } else {
-                var response = JSON.parse(req.responseText);
-                if(response.errors) {
-                    alert('Error: ' + response.errors);
-                } else {
-                    // Lets blast the user with the response :)
-                    alert('Error: ' + req.responseText);
-                }
-                show_badge_text('#ff0000', 'FAIL', 5);
-            }
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
         }
-    };
+    })
+    .then((response) => {
+        if (!response.ok) {
+            throw new Error("Network response was not ok.");
+        } else {
+            show_badge_text('#006400', '✓', 2);
+        }
+    })
+    .catch((error) => {
+        console.error(`Fetch Error: ${error}`);
+        alert('Error: ' + error);
+        show_badge_text('#ff0000', '✗', 2);
+    });
+    
     return false;
 },
 
-// split_by_comma_list = function(value) {
-//     if (!value) {
-//         return [];
-//     }
-//     return value.split(',');
-// },
-// get_menu_devices = function() {
-//     var devices = split_by_comma_list(localStorage.devices_menu);
-//     if (!devices.length) {
-//         devices = split_by_comma_list(localStorage.devices_all);
-//     }
-//     return devices;
-// },
-
 setup_context_menus = function() {
-    // var devices = get_menu_devices(),
     var devices = ['Telegram Bot'],
         ctxs = ['page', 'link', 'image', 'selection'];
     chrome.contextMenus.removeAll();
@@ -130,8 +87,8 @@ setup_context_menus = function() {
     }
 };
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.tabs.sendRequest(tab.id, {
+chrome.action.onClicked.addListener(function(tab) {
+    chrome.tabs.sendMessage(tab.id, {
         method: 'selection'
     }, function(text) {
         push_message('badge', tab, text);
@@ -145,7 +102,6 @@ chrome.runtime.onMessage.addListener(function(request) {
 });
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
-    // var devices = get_menu_devices();
     var devices = ['Telegram Bot'];
     if (devices.length) {
         for (var i = 0; i < devices.length; i++) {
@@ -161,11 +117,6 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
         }
     }
 });
-
-if (!localStorage.devices_all && localStorage.device) {
-    localStorage.devices_all = localStorage.device;
-    localStorage.removeItem('device');
-}
 
 if (combo_valid()) {
     setup_context_menus();

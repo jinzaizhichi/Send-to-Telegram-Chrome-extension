@@ -1,22 +1,22 @@
 <!doctype html>
 <html>
 <head>
-    <title>Send-to-Telegram</title>
+    <title>Send to Telegram</title>
     <style type="text/css">
         body {
             background-color: white;
-            padding: 80px;
+            padding: 8px;
             font-family: Helvetica, Arial, Serif;
         }
-        input, button, select, option {
+        /* input, button, select, option {
             border-radius: 5px;
             background-color: rgb(235, 235, 235);
             padding: 5px;
             font-weight: bold;
             border: 1px solid rgb(12, 40, 99);
-        }
+        } */
         .input {
-            width: 300px;
+            width: 400px;
         }
         select {
             width: 310px;
@@ -29,47 +29,35 @@
             font-weight: bold;
         }
         #message {
-            font-size: 20px;
+            font-size: 15px;
             color: green;
-            font-weight: bold;
+            /* font-weight: bold; */
         }
     </style>
 </head>
 <body>
-    <h1>Send-to-Telegram for Google Chrome</h1>
+    <h1>Send to Telegram</h1>
     <table border="0">
         <tr>
-            <td>
-            <td id='message'>&nbsp;
-        <!-- <tr>
-            <td>Get yours here:
-            <td><a href="https://pushover.net/" target=_blank>https://pushover.net</a> -->
-        <tr>
-            <td>API Key:
+            <td>API Token:
             <td><input id='token' class="input">
         <tr>
             <td>User ID:
             <td><input id='userkey' class="input">
         <tr>
-        <!-- <tr>
-            <td>Sound:
-            <td><select id="sounds"></select> -->
-        <tr>
-            <td>
             <td><button id='save'>Save</button>
-        <!-- <tr>
-            <td>Devices:
-            <td>
-        <tr>
-            <td>- badge:
-            <td id="devices_badge">-
-        <tr>
-            <td>- menu:
-            <td id="devices_menu">-
-        <tr>
-            <td>
-            <td><small>* De-selecting all devices will send notifications to every device!</small> -->
+                <td id='message'>&nbsp;
     </table>
+    <h4>Setup Instruction:</h4>
+    <ol>
+        <li>Install "Send to Telegram" from <a href="https://chrome.google.com/webstore/detail/send-to-telegram-for-goog/dgblfklicldlbclahclbkeiacpiiancc">Chrome Web Store - Send to Telegram</a>.</li>
+        <li>Create a Telegram Bot following <a href="https://core.telegram.org/bots#6-botfather">Telegram official introduction</a> and get your bot <code>&lt;API token&gt;</code>.</li>
+        <li><strong>Send any message to the bot created, in the Telegram APP.</strong></li>
+        <li>Get your <code>&lt;User ID&gt;</code> (value of "<code>id</code>" in the response) by visiting <code>https://api.telegram.org/bot&lt;API token&gt;/getUpdates</code>.</li>
+        <li>Fill your <code>&lt;API token&gt;</code> and <code>&lt;User ID&gt;</code> in the extension setting page.</li>
+        <li>If everything is working correctly, this page and your bot will display '"Send to Telegram" configured successfully!'.</li>
+    </ol>      
     <script type="text/javascript" src="options.js"></script>
+
 </body>
 </html>

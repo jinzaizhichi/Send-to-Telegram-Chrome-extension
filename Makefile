@@ -1,2 +1,2 @@
 all:
-	zip -r ../Send-to-Telegram-Chrome-extension.zip ./*
+	zip -r ../send-to-telegram.zip ./*
